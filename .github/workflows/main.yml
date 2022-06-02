@@ -30,6 +30,7 @@ jobs:
           cat ./bookmarklet.txt
   something:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v3
       - run: cat ./bookmarklet.txt
