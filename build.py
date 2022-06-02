@@ -7,7 +7,7 @@ def build():
   with open('./adblocker.js') as f:
     src = f.read()
   text = make_bookmarklet(src)
-  with open('./bookmarklet.txt') as f:
+  with open('./bookmarklet.txt', 'w') as f:
     f.write(text)
 
 if __name__ == '__main__':
