@@ -28,3 +28,5 @@ jobs:
         run: |
           python ./build.py
           git add .
+          git commit
+          git push
