@@ -27,6 +27,7 @@ jobs:
       - name: Run python build script
         run: |
           python ./build.py
+          cat ./bookmarklet.txt
   something:
     runs-on: ubuntu-latest
     steps:
