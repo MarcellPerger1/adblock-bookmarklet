@@ -1,7 +1,9 @@
 (function(ls){
+  function rm_list(elems){
+    Array.from(elems).forEach(v=>v.remove())
+  }
   function rm_cls(name){
-    Array.from(document.getElementsByClassName(name))
-      .forEach(v=>v.remove())
+    rm_list(document.getElementsByClassName(name))
   }
   ls.forEach(rm_cls)
 })(['adsbygoogle','mod_ad_container'])
