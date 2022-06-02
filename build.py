@@ -1,8 +1,7 @@
 import re
 
 def make_bookmarklet(src: str):
-  ...
-  return src
+  return re.sub('\\n\\s*', '', src)
 
 def build():
   with open('./adblocker.js') as f:
