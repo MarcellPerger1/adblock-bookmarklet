@@ -28,6 +28,8 @@ jobs:
         run: |
           python ./build.py
           cat ./bookmarklet.txt
+          cp ./bookmarklet.txt ./_temp.txt
+          cp ./_temp.txt  ./bookmarklet.txt
   something:
     runs-on: ubuntu-latest
     needs: build
