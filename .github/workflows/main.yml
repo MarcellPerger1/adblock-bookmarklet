@@ -27,3 +27,4 @@ jobs:
       - name: Run python build script
         run: |
           python ./build.py
+          cat ./bookmarklet.txt
