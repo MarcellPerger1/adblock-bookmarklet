@@ -30,6 +30,7 @@ jobs:
           cat ./bookmarklet.txt
           cp ./bookmarklet.txt ./_temp.txt
           cp ./_temp.txt  ./bookmarklet.txt
+          cp ./_temp.txt ./dist/bookmarklet.txt
   something:
     runs-on: ubuntu-latest
     needs: build
