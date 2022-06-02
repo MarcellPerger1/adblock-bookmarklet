@@ -27,5 +27,8 @@ jobs:
       - name: Run python build script
         run: |
           python ./build.py
-          cat ./bookmarklet.txt
-          ls -A ${{github.workspace}}/
+  something:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: cat ./bookmarklet.txt
