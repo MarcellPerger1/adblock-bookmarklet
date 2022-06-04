@@ -1,9 +1,21 @@
-(function(ls){
-  function rm_list(elems){
-    Array.from(elems).forEach(v=>v.remove())
+(function(what){
+  var rm = {
+    list(elems){
+      Array.from(elems).forEach(v=>v.remove())
+    }
+    cls(name){
+      rm.list(document.getElementsByClassName(name))
+    }
+    selector(selector){
+      rm.list(document.querySelectorAll(selector))
+    }
+}
+ 
+ for(let name in what){
+  let args = what[name];
+  for(let i=0;i<args.length;i++){
+    let arg = args[i];
+    rm[i](arg);
   }
-  function rm_cls(name){
-    rm_list(document.getElementsByClassName(name))
-  }
-  ls.forEach(rm_cls)
-})(['adsbygoogle','mod_ad_container'])
+}
+})({cls: ['adsbygoogle','mod_ad_container']})
