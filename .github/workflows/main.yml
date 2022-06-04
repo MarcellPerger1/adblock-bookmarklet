@@ -28,7 +28,7 @@ jobs:
         run: |
           python ./build.py
       - name: Print built bookmarklet
-        run: cat ./bookmarket.txt
+        run: cat ./bookmarklet.txt
       - name: Make artifact
         uses: actions/upload-artifact@v3
         with:
