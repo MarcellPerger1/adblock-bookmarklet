@@ -27,4 +27,10 @@ jobs:
       - name: Run python build script
         run: |
           python ./build.py
-          cat ./bookmarklet.txt
+      - name: Print built bookmarklet
+        run: cat ./bookmarklet.txt
+      - name: Make artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bookmarklet
+          path: ./bookmarklet.txt
