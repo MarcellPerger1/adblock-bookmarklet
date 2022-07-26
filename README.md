@@ -1,6 +1,6 @@
 # adblock-bookmarklet
 A bookmarklet to remove ads.
-Beacause I hate and and you shouldn't need a chrome extension to block ads...Beacause I hate and and you shouldn't need a chrome extension to block ads...
+Because I hate ads and you shouldn't need a chrome extension to block ads...Beacause I hate and and you shouldn't need a chrome extension to block ads...
 
 ## How to use
 - Copy text from `bookmaklet.txt` 
