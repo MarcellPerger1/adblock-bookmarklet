@@ -1,7 +1,7 @@
 import re
 
 def make_bookmarklet(src: str):
-  s = re.sub('\\n\\s*', '', src)
+  s = re.sub(r'\s*', '', src)
   s = 'javascript:' + s
   return s
 
