@@ -19,5 +19,5 @@
     }
   }
 })({
-  cls: ['adsbygoogle', 'mod_ad_container']
+  cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container']
 })
