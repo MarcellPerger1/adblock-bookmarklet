@@ -15,7 +15,7 @@
     let args = what[name];
     for (let i = 0; i < args.length; i++) {
       let arg = args[i];
-      rm[i](arg);
+      rm[name](arg);
     }
   }
 })({
