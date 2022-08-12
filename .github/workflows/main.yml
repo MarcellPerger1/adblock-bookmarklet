@@ -6,9 +6,9 @@ name: Build
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches: [ main, "**workflow**" ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, "**workflow**" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -34,3 +34,7 @@ jobs:
         with:
           name: bookmarklet
           path: ./bookmarklet.txt
+      - name: Commit build
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Build bookmarklet
