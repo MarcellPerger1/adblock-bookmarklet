@@ -19,5 +19,6 @@
     }
   }
 })({
-  cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container', 'adthrive-ad']
+  cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container', 'adthrive-ad'],
+  selector: ['[aria-label="advertisement"]']
 })
