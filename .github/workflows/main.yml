@@ -23,6 +23,9 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4.3.0
+        with:
+          python-version: "^3.8"
 
       - name: Run python build script
         run: |
