@@ -10,7 +10,6 @@ async function minifyToText(options, strict=false) {
   if (strict && minified.includes("\n")) {
     throw new Error("Minified file contains newlines so cannot be put into a bookmark");
   }
-  
   return minified;
 }
 async function minifyToFile(file, options, strict=false, writeText=false) {
@@ -29,8 +28,4 @@ await minifyToFile("./adblocker.compressed.js", {
 }, false, true);
 await minifyToFile("./adblocker.min.js", {
   ecma: 2021, compress: {passes: 3}
-}, false, true)
-
-// await writeFile("./adblocker.min.js", minified);
-
-// await writeFile("./bookmarklet.min.txt", "javascript:" + minified)
+}, true, true);
