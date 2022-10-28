@@ -14,10 +14,13 @@ async function minifyToText(options, strict=false) {
   return minified;
 }
 async function minifyToFile(file, options, strict=false, writeText=false) {
-  var code = await minifyToText(options, strict)
+  var code = await minifyToText(options, strict);
   await writeFile(file, code);
   if(writeText) {
-    code.replaceAll(/adblocker\.([^\.\/]+)\.js/g, "bookmarklet.$1.txt")
+    let textFile = file.replaceAll(
+      /adblocker\.([^\.\/]+)\.js/g, "bookmarklet.$1.txt")
+    let text = "javascript:" + code;
+    await writeFile(textFile, text);
   }
 }
 
