@@ -24,8 +24,8 @@ async function minifyToFile(file, options, strict=false, writeText=false) {
 }
 
 await minifyToFile("./adblocker.compressed.js", {
-  ecma: 2021, mangle: false, compress: {defaults: false}
+  ecma: 2021, mangle: false, compress: false
 }, false, true);
 await minifyToFile("./adblocker.min.js", {
-  ecma: 2021, compress: {passes: 3}
+  ecma: 2021, compress: {passes: 3}, mangle: {toplevel: true}
 }, true, true);
