@@ -24,22 +24,27 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
       - name: Setup python 3.8+
         uses: actions/setup-python@v4.3.0
         with:
           python-version: "^3.8"
+          
       - name: Setup nodejs
         uses: actions/setup-node@v3.5.1
         with:
           node-version: 16
           cache: npm
           cache-dependency-path: ./package-lock.json
+      - name: Install pacakges
+        run: npm ci
 
       - name: Run python build script
         run: |
           python ./build.py
       - name: Run nodejs build
         run: node ./build.mjs
+        
       - name: Commit build
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
