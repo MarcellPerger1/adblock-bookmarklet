@@ -32,13 +32,6 @@ jobs:
       - name: Run python build script
         run: |
           python ./build.py
-      - name: Print built bookmarklet
-        run: cat ./bookmarklet.txt
-      - name: Make artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: bookmarklet
-          path: ./bookmarklet.txt
       - name: Commit build
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
