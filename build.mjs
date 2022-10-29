@@ -23,7 +23,7 @@ async function minifyToFile(file, options, strict=false, writeText=false) {
   }
 }
 
-await minifyToFile("./adblocker.compressed.js", {
+await minifyToFile("./adblocker.debug-min.js", {
   ecma: 2021, mangle: false, compress: false
 }, false, true);
 await minifyToFile("./adblocker.min.js", {
