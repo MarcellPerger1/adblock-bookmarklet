@@ -24,21 +24,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Setup python 3.8+
-        uses: actions/setup-python@v4.3.0
+          
+      - name: Setup nodejs
+        uses: actions/setup-node@v3.5.1
         with:
-          python-version: "^3.8"
+          node-version: 16
+          cache: npm
+          cache-dependency-path: ./package-lock.json
+      - name: Install pacakges
+        run: npm ci
 
-      - name: Run python build script
-        run: |
-          python ./build.py
-      - name: Print built bookmarklet
-        run: cat ./bookmarklet.txt
-      - name: Make artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: bookmarklet
-          path: ./bookmarklet.txt
+      - name: Run nodejs build
+        run: node ./src/build.mjs
+        
       - name: Commit build
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
