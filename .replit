@@ -1,4 +1,4 @@
-entrypoint = "build.mjs"
+entrypoint = "src/build.mjs"
 
 hidden = [".config"]
 
