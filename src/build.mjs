@@ -32,7 +32,7 @@ async function minifyToFile(file, options, strict=false, writeText=false) {
 console.log("Reading input");
 var orig = (await readFile("./src/adblocker.js")).toString();
 await Promise.all([
-  minifyToFile("./dist/debug/adblocker.debug-min.js", {
+  minifyToFile("./dist/debug/adblocker.debug.js", {
     ecma: 2021, mangle: false, compress: false
     }, false, true),
   minifyToFile("./dist/release/adblocker.min.js", {
