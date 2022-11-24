@@ -1,7 +1,21 @@
 (function(what) {
+  function shouldIgnore(elem) {
+    for(let s of what.ignore?.selector ?? []) {
+      if(elem.matches(s)) { return true; }
+    }
+    for(let f of what.ignore?.func ?? []) {
+      if(f(elem)) { return true; }
+    }
+    return false;
+  }
   var rm = {
+    elem(elem) {
+      if(!shouldIgnore(elem)) {
+        elem.remove()
+      }
+    },
     list(elems) {
-      Array.from(elems).forEach(v => v.remove())
+      Array.from(elems).forEach(v => rm.elem(v))
     },
     cls(name) {
       rm.list(document.getElementsByClassName(name))
@@ -15,7 +29,7 @@
         : document.querySelectorAll(selector);
       for (let elem of elems) {
         if (func(elem)) {
-          elem.remove();
+          rm.elem(elem);
         }
       }
     }
@@ -44,4 +58,7 @@
       }
     }
   ],
+  ignore: {
+    selector: ["body"]
+  }
 })
