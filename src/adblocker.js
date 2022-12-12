@@ -59,6 +59,14 @@
     }
   ],
   ignore: {
-    selector: ["body"]
+    selector: ["body", ".ad-layout"],
+    func: [(elem) => {
+      let articles = document.getElementsByTagName('article');
+      for(let a of articles) {
+        if(elem.contains(a)) {
+          return true;  // ignore if an article descends from it
+        }
+      }
+    }]
   }
 })
