@@ -48,7 +48,7 @@
   /** @type {{selector: string?, func: (elem: Element) => any}[]} */
   func: [
     {
-      selector: '[class*="ad"]', 
+      selector: '[class*="ad"],[id*="ad"]', 
       func(elem) {
         for (const clsname of elem.classList) {
           if (clsname.startsWith("ad") || /[-_\s]ad(?:vertisement)?$/.test(clsname)) {
