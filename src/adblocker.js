@@ -35,10 +35,8 @@
     }
   };
 
-  for (let name in what) {
-    let args = what[name];
-    for (let i = 0; i < args.length; i++) {
-      let arg = args[i];
+  for (let [name, args] of Object.entries(what)) {
+    for (let arg of args) {
       rm[name](arg);
     }
   }
