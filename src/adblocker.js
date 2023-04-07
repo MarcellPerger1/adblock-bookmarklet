@@ -48,10 +48,10 @@
   /** @type {{selector: string?, func: (elem: Element) => any}[]} */
   func: [
     {
-      selector: '[class*="ad"]', 
+      selector: '[class*="ad"],[id*="ad"]', 
       func(elem) {
-        for (const clsname of elem.classList) {
-          if (clsname.startsWith("ad") || /[-_\s]ad(?:vertisement)?$/.test(clsname)) {
+        for (const name of [elem.id, ...elem.classList]) {
+          if(/ad(vertisement)?(content)?(engine|ngin)?(container)?($|[-_,\s])/.test(name)) {
             return true;
           }
         }
