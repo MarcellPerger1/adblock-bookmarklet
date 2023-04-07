@@ -51,7 +51,7 @@
       selector: '[class*="ad"],[id*="ad"]', 
       func(elem) {
         for (const name of [elem.id, ...elem.classList]) {
-          if (name.startsWith("ad") || /[-_\s]ad(?:vertisement)?$/.test(name)) {
+          if(/ad(vertisement)?(content)?(engine|ngin)?(container)?($|[-_,\s])/.test(name)) {
             return true;
           }
         }
