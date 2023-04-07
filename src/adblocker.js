@@ -50,8 +50,8 @@
     {
       selector: '[class*="ad"],[id*="ad"]', 
       func(elem) {
-        for (const clsname of elem.classList) {
-          if (clsname.startsWith("ad") || /[-_\s]ad(?:vertisement)?$/.test(clsname)) {
+        for (const name of [elem.id, ...elem.classList]) {
+          if (name.startsWith("ad") || /[-_\s]ad(?:vertisement)?$/.test(name)) {
             return true;
           }
         }
