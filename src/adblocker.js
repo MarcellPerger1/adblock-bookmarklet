@@ -52,7 +52,7 @@
       selector: '[class*="ad"],[id*="ad"]', 
       func(elem) {
         for (const name of [elem.id, ...elem.classList]) {
-          if(/ad(vertisement)?(content)?(engine|ngin)?(container)?($|[-_,\s])/.test(name)) {
+          if(/(?<!lo)ad(vertisement)?(content)?(engine|ngin)?(container)?($|[-_,\s])/.test(name)) {
             return true;
           }
         }
