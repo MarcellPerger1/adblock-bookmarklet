@@ -13,9 +13,24 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3.5.1
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: ./package-lock.json
+      - name: Install pakages
+        run: npm ci
+      
+      - name: Run eslint
+        run: ./node_modules/.bin/eslint --max-warnings 0 ./
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -35,9 +50,10 @@ jobs:
         run: npm ci
 
       - name: Run nodejs build
-        run: node ./src/build.mjs
+        run: node ./src/build.js
         
       - name: Commit build
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Build bookmarklet
+          

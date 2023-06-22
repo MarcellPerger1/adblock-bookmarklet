@@ -1,3 +1,4 @@
+/* eslint-env node, es2021 */
 import { minify } from "terser";
 import { readFile, writeFile } from "fs/promises";
 
@@ -22,7 +23,7 @@ async function minifyToFile(file, options, strict=false, writeText=false) {
   var ps = [writeResult(file, code)];
   if(writeText) {
     let textFile = file.replaceAll(
-      /adblocker\.([^\.\/]+)\.js/g, "bookmarklet.$1.txt")
+      /adblocker\.([^./]+)\.js/g, "bookmarklet.$1.txt")
     let text = "javascript:" + code;
     ps.push(writeResult(textFile, text));
   }
