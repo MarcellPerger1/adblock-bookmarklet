@@ -1,3 +1,4 @@
+/* eslint-env browser, es2021 */
 (function(what) {
   function shouldIgnore(elem) {
     for(let s of what.ignore?.selector ?? []) {

@@ -1,3 +1,4 @@
+/* eslint-env node, es2021 */
 import { minify } from "terser";
 import { readFile, writeFile } from "fs/promises";
 
