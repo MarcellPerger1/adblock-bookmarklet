@@ -56,5 +56,6 @@ jobs:
           cache-dependency-path: ./package-lock.json
       - name: Install pakages
         run: npm ci
+      
       - name: Run eslint
         run: ./node_modules/.bin/eslint --max-warnings 0 ./
