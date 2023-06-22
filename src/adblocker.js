@@ -36,8 +36,11 @@
   };
 
   for (let [name, args] of Object.entries(what)) {
-    for (let arg of args) {
-      rm[name](arg);
+    // don't try to use the 'ignore' property as a thing to block
+    if(name != 'ignore') {
+      for (let arg of args) {
+        rm[name](arg);
+      }
     }
   }
 })({
