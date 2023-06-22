@@ -23,7 +23,7 @@ async function minifyToFile(file, options, strict=false, writeText=false) {
   var ps = [writeResult(file, code)];
   if(writeText) {
     let textFile = file.replaceAll(
-      /adblocker\.([^\.\/]+)\.js/g, "bookmarklet.$1.txt")
+      /adblocker\.([^./]+)\.js/g, "bookmarklet.$1.txt")
     let text = "javascript:" + code;
     ps.push(writeResult(textFile, text));
   }
