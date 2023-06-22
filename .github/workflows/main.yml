@@ -35,7 +35,7 @@ jobs:
         run: npm ci
 
       - name: Run nodejs build
-        run: node ./src/build.mjs
+        run: node ./src/build.js
         
       - name: Commit build
         uses: stefanzweifel/git-auto-commit-action@v4
