@@ -37,6 +37,6 @@ await Promise.all([
     ecma: 2021, mangle: false, compress: false
     }, false, true),
   minifyToFile("./dist/release/adblocker.min.js", {
-    ecma: 2021, compress: {passes: 3}, mangle: {toplevel: true}
+    ecma: 2021, compress: {passes: 3, expression: false}, mangle: {toplevel: true}
     }, true, true),
 ])
