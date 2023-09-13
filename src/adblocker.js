@@ -61,7 +61,7 @@
     }
   ],
   ignore: {
-    selector: ["body", ".ad-layout"],
+    selector: ["body", ".ad-layout", "#game-holder.game-holder-with-ad"],
     func: [(elem) => {
       let articles = document.getElementsByTagName('article');
       for(let a of articles) {
