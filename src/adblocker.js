@@ -45,6 +45,7 @@
     }
   }
 })({
+  // TODO!! delete #aipPrerollContainer or detect ~aip
   cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container', 'adthrive-ad'],
   selector: ['[aria-label="advertisement"]', '[class*="-ad "], [class*="-ad-"], [class$="-ad"], [class^="ad-"], [class^="adthrive"]', ':is(div,iframe)[id^="google_ads_iframe_"]'],
   /** @type {{selector: string?, func: (elem: Element) => any}[]} */
@@ -53,6 +54,7 @@
       selector: '[class*="ad"],[id*="ad"]', 
       func(elem) {
         for (const name of [elem.id, ...elem.classList]) {
+          // TODO also check lowercase followed by uppercase at end e.g. adBox
           if(/(?<!lo|re|he)ad(vertisement)?s?(thrive)?(content)?(engine|ngin)?(container)?s?($|[-_,\s])/.test(name)) {
             return true;
           }
