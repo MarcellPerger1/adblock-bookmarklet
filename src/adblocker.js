@@ -45,9 +45,8 @@
     }
   }
 })({
-  // TODO!! delete #aipPrerollContainer or detect ~aip
   cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container', 'adthrive-ad'],
-  selector: ['[aria-label="advertisement"]', '[class*="-ad "], [class*="-ad-"], [class$="-ad"], [class^="ad-"], [class^="adthrive"]', ':is(div,iframe)[id^="google_ads_iframe_"]'],
+  selector: ['[aria-label="advertisement"]', '[class*="-ad "], [class*="-ad-"], [class$="-ad"], [class^="ad-"], [class^="adthrive"]', ':is(div,iframe)[id^="google_ads_iframe_"]', '#aipPrerollContainer'],
   /** @type {{selector: string?, func: (elem: Element) => any}[]} */
   func: [
     {
