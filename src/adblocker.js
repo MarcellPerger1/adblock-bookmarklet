@@ -59,7 +59,18 @@
           }
         }
       }
-    }
+    },
+    {
+      selector: 'div#preroll',
+      func(elem) {
+        // match div#preroll that has child div#aipBranding
+        for (let c of elem.children) {
+          if(c.matches("div#aipBranding")) {
+            return true;
+          }
+        }
+      }
+    },
   ],
   ignore: {
     selector: ["body", ".ad-layout", "#game-holder.game-holder-with-ad"],
