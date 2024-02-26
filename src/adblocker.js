@@ -16,8 +16,8 @@
   var rm = {
     elem(/** @type {HTMLElement} */elem) {
       if(!shouldIgnore(elem)) {
+        removedElems.add([elem, elem.parentElement]);
         elem.remove()
-        removedElems.add(elem);
       }
     },
     list(/** @type {HTMLElement[]} */elems) {
@@ -40,7 +40,7 @@
       }
     }
   };
-  var /** @type {Set<HTMLElement>} */ removedElems  = new Set;
+  var /** @type {Set<[HTMLElement, HTMLElement]>} */ removedElems  = new Set;
   var handledElems /** @type {Set<HTMLElement>} */ = new Set;
   for (let [name, args] of Object.entries(what)) {
     // don't try to use the 'ignore' property as a thing to block
@@ -50,12 +50,11 @@
       }
     }
   }
-  for(let elem of removedElems) {
+  for(let [elem, parent] of removedElems) {
     if(handledElems.has(elem)) {
       continue;  // already handled
     }
     handledElems.add(elem);
-    let parent = elem.parentElement;
     if(!parent.isConnected) {
       // (indirect) parent has been deleted so don't do anything here, 
       // instead go from the parent (which will also be in the Set)
