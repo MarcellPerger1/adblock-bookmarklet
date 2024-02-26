@@ -9,19 +9,24 @@
     }
     return false;
   }
+  function isContainerElem(/** @type {HTMLElement} */elem) /** @type {boolean} */ {
+    // .tagName returns UPPERCASE for some reason
+    return ["DIV", "SPAN"].includes(elem.tagName);
+  }
   var rm = {
-    elem(elem) {
+    elem(/** @type {HTMLElement} */elem) {
       if(!shouldIgnore(elem)) {
         elem.remove()
+        removedElems.add(elem);
       }
     },
-    list(elems) {
+    list(/** @type {HTMLElement[]} */elems) {
       Array.from(elems).forEach(v => rm.elem(v))
     },
-    cls(name) {
+    cls(/**@type {string} */name) {
       rm.list(document.getElementsByClassName(name))
     },
-    selector(selector) {
+    selector(/** @type {string} */selector) {
       rm.list(document.querySelectorAll(selector))
     },
     func({func, selector=null}) {
@@ -35,7 +40,8 @@
       }
     }
   };
-
+  var /** @type {Set<HTMLElement>} */ removedElems  = new Set;
+  var handledElems /** @type {Set<HTMLElement>} */ = new Set;
   for (let [name, args] of Object.entries(what)) {
     // don't try to use the 'ignore' property as a thing to block
     if(name != 'ignore') {
@@ -43,6 +49,27 @@
         rm[name](arg);
       }
     }
+  }
+  for(let elem of removedElems) {
+    if(handledElems.has(elem)) {
+      continue;  // already handled
+    }
+    handledElems.add(elem);
+    let parent = elem.parentElement;
+    if(!parent.isConnected) {
+      // (indirect) parent has been deleted so don't do anything here, 
+      // instead go from the parent (which will also be in the Set)
+      continue;
+    }
+    if(!isContainerElem(parent)) {
+      continue;  // parent might be an image or similar so don't delete
+    }
+    if(parent.hasChildNodes()) {
+      continue;  // don't delete parent - info of other children would be lost
+    }
+    // no children, no info in self, so safe to delete
+    // NOTE: This will add `parent` to the end of removedElems (if not ignored) so will check again from the parent
+    rm.elem(parent);
   }
 })({
   cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container', 'adthrive-ad'],
