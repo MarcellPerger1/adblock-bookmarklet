@@ -10,3 +10,4 @@ Because I don't like ads and you shouldn't need a chrome extension to block ads.
 ## Reporting bugs
 - If it doesn't block some ads, or removes legitimate content, please [open an issue](https://github.com/MarcellPerger1/adblock-bookmarklet/issues/new)
 - In the issue, please include a URL of the website where it doesn't work (otherwise I won't be able to fix it)
+- Also, please check if it's a duplicate of an open issue (if it is, just give that issue a +1/thumbs up/similar if you are also experiencing it)
