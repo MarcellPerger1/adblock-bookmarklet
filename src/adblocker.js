@@ -72,7 +72,15 @@
   }
 })({
   cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container', 'adthrive-ad'],
-  selector: ['[aria-label="advertisement"]', '[class*="-ad "], [class*="-ad-"], [class$="-ad"], [class^="ad-"], [class^="adthrive"]', ':is(div,iframe)[id^="google_ads_iframe_"]', '#aipPrerollContainer'],
+  selector: [
+    '[aria-label="advertisement"]',
+    '[class*="-ad "],[class*="-ad-"],[class$="-ad"],[class^="ad-"],[class^="adthrive"]',
+    ':is(div,iframe)[id^="google_ads_iframe_"]',
+    '#aipPrerollContainer',
+    // This should really select the top one but we let the 'only contains ads' functionality handle it. 
+    // Yes I know its lazy, but it is more elegant than writing a whole new func filter (and more performant)
+    'span[data-ez-ph-id] span[data-ez-ph-owner-id] span.ezoicwhat',
+  ],
   /** @type {{selector: string?, func: (elem: Element) => any}[]} */
   func: [
     {
