@@ -105,6 +105,19 @@
         }
       }
     },
+    {
+      selector: 'html > iframe',
+      func(/** @type {HTMLIFrameElement} */elem) {
+        // Some sanity checks not to accidenally break websites
+        if(!(elem.sandbox.contains("allow-scripts") && elem.sandbox.contains("allow-same-origin") && elem.sandbox.length == 2)) {
+          return false;
+        }
+        if(!elem.src.toLowerCase().includes("gdpr")) { // Ad iframes very often include a `?gdpr=...` in the URL
+          return false;
+        }
+        return true;
+      }
+    },
   ],
   ignore: {
     selector: ["body", ".ad-layout", "#game-holder.game-holder-with-ad"],
