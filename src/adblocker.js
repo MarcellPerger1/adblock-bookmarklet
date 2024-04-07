@@ -121,7 +121,7 @@
     },
   ],
   ignore: {
-    selector: ["body", ".ad-layout", "#game-holder.game-holder-with-ad"],
+    selector: ["body", ".ad-layout", "#game-holder.game-holder-with-ad", ".no-interstitial-ads"],
     func: [(elem) => {
       let articles = document.getElementsByTagName('article');
       for(let a of articles) {
