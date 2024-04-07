@@ -85,10 +85,11 @@
   func: [
     {
       selector: '[class*="ad"],[id*="ad"]', 
+      /** This is the one that gets most of them, rest is just special cases */
       func(elem) {
         for (const name of [elem.id, ...elem.classList]) {
           // TODO also check lowercase followed by uppercase at end e.g. adBox
-          if(/(?<!lo|re|he)ad(vertisement)?s?(thrive)?(content)?(engine|ngin)?(container)?s?($|[-_,\s])/.test(name)) {
+          if(/(?<!lo|re|he)[aA]d(vertisement)?s?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(name)) {
             return true;
           }
         }
@@ -103,6 +104,19 @@
             return true;
           }
         }
+      }
+    },
+    {
+      selector: 'html > iframe',
+      func(/** @type {HTMLIFrameElement} */elem) {
+        // Some sanity checks not to accidenally break websites
+        if(!(elem.sandbox.contains("allow-scripts") && elem.sandbox.contains("allow-same-origin") && elem.sandbox.length == 2)) {
+          return false;
+        }
+        if(!elem.src.toLowerCase().includes("gdpr")) { // Ad iframes very often include a `?gdpr=...` in the URL
+          return false;
+        }
+        return true;
       }
     },
   ],
