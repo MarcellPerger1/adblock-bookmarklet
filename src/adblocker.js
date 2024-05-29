@@ -84,7 +84,7 @@
   /** @type {{selector: string?, func: (elem: Element) => any}[]} */
   func: [
     {
-      selector: '[class*="ad"],[id*="ad"]', 
+      selector: '[class*="ad" i],[id*="ad" i]', 
       /** This is the one that gets most of them, rest is just special cases */
       func(elem) {
         for (const name of [elem.id, ...elem.classList]) {
