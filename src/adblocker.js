@@ -89,7 +89,7 @@
       func(elem) {
         for (const name of [elem.id, ...elem.classList]) {
           // TODO also check lowercase followed by uppercase at end e.g. adBox
-          if(/(?<!lo|re|he)[aA]d(vertisement)?s?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(name)) {
+          if(/(?<!lo|re|he)(ad|Ad|AD)(vertisement)?s?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(name)) {
             return true;
           }
         }
