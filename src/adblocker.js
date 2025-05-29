@@ -89,9 +89,9 @@
       selector: '[class*="ad" i],[id*="ad" i]', 
       /** This is the one that gets most of them, rest is just special cases */
       func(elem) {
-        for (const name of [elem.id, ...elem.classList]) {
+        for (const name of [elem.id, ...elem.classList, elem.tagName.toLowerCase()]) {
           // TODO also check lowercase followed by uppercase at end e.g. adBox
-          if(/(?<!lo|re|he)(ad|Ad|AD)(vertisement)?s?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(name)) {
+          if(/(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(name)) {
             return true;
           }
         }
