@@ -1,7 +1,10 @@
 /* eslint-env browser, es2021 */
 (function () {
+  var lastRun = -1e9;
   function block() {
-    console.log("Blocking...");
+    // run every 100ms at most, but clamp other side to prevent timezone weirdness
+    if(lastRun < Date.now() && Date.now() < lastRun + 100) return;
+    lastRun = Date.now();
     (function (what) {
       function shouldIgnore(elem) {
         for (let s of what.ignore?.selector ?? []) {
@@ -26,7 +29,9 @@
         elem(/** @type {HTMLElement} */ elem) {
           if (!shouldIgnore(elem)) {
             removedElems.add([elem, elem.parentElement]);
-            elem.remove();
+            // Anti-adblock stuff might overwrite their own prototype
+            // This isn't perfect by any means but it's good enough.
+            HTMLElement.prototype.remove.call(elem);
           }
         },
         list(/** @type {HTMLElement[]} */ elems) {
@@ -103,6 +108,8 @@
         "div#_60cc9a6b-496d-4e44-90d8-0b2947bfd3ce",
         // hopefully not too overambitious (vm-placement is quite generic but 'placement' is used so often just for ads so it's fine)
         '.vm-placement + :has(iframe):not(:has(* + *)) iframe',
+        // Dumbing of Age comic thing (error-prone, may need to change for later website versions)
+        'iframe#p_AIW8hnK, iframe#p_AIW8hnK, iframe#p_Xdy8q6J'
       ],
       /** @type {{selector: string?, func: (elem: Element) => any}[]} */
       func: [
@@ -117,7 +124,7 @@
             ]) {
               // TODO also check lowercase followed by uppercase at end e.g. adBox
               if (
-                /(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(
+                /(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?[xX]?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(
                   name,
                 )
               ) {
@@ -159,7 +166,7 @@
         },
         {
           selector:
-            'iframe[name="__tcfapiLocator"] ~ span:has(iframe):not(:has(* + *))',
+            ':is(iframe[name="__tcfapiLocator"], iframe[name="__pb_locator__"]) ~ :is(span, div):has(iframe):not(:has(* + *))',
           func(el) {
             if (!el.src) return true; // exterminate  (usually ad)
           },
