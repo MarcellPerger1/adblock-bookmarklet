@@ -32,11 +32,16 @@ async function minifyToFile(file, options, strict=false, writeText=false) {
 
 console.log("Reading input");
 var orig = (await readFile("./src/adblocker.js")).toString();
-await Promise.all([
+var results = await Promise.allSettled([
   minifyToFile("./dist/debug/adblocker.debug.js", {
     ecma: 2021, mangle: false, compress: false
     }, false, true),
   minifyToFile("./dist/release/adblocker.min.js", {
     ecma: 2021, compress: {passes: 3, expression: false, negate_iife: false}, mangle: {toplevel: true}
     }, true, true),
-])
+]);
+
+
+if(results.some(({status}) => status == "rejected")) {
+  throw new Error("Failed to bookmark-ify Javascript", {cause: results.filter(({status}) => status == "rejected").map(({reason}) => reason)});
+}

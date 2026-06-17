@@ -1,5 +1,5 @@
 /* eslint-env browser, es2021 */
-(function () {
+/** @copyright (c) 2022 Marcell Perger @license MIT */(function () {
   var lastRun = -1e9;
   function block() {
     // run every 100ms at most, but clamp other side to prevent timezone weirdness
