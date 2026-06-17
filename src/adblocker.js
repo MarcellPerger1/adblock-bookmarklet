@@ -101,6 +101,8 @@
         "span[data-ez-ph-id] span[data-ez-ph-owner-id] span.ezoicwhat",
         // Malfunctioning overambitious adblocker-wall on Cite This For Me
         "div#_60cc9a6b-496d-4e44-90d8-0b2947bfd3ce",
+        // hopefully not too overambitious (vm-placement is quite generic but 'placement' is used so often just for ads so it's fine)
+        '.vm-placement + :has(iframe):not(:has(* + *)) iframe',
       ],
       /** @type {{selector: string?, func: (elem: Element) => any}[]} */
       func: [
