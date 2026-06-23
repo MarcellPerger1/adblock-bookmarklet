@@ -26,7 +26,7 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: ./package-lock.json
-      - name: Install pakages
+      - name: Install packages
         run: npm ci
       
       - name: Run eslint
@@ -46,7 +46,7 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: ./package-lock.json
-      - name: Install pacakges
+      - name: Install packages
         run: npm ci
 
       - name: Run nodejs build
