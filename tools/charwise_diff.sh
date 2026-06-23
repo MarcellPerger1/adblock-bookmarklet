@@ -1,3 +1,4 @@
+#!/usr/bin/bash
 USAGE="usage: $0 from-file to-file"
 for arg; do 
     if test "$arg" == '--help' || test "$arg" == '-h'; then 
