@@ -4,6 +4,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
+    "@types/node": "^26.0.0",
     "eslint": "^8.43.0",
     "rollup": "^4.62.2"
   },

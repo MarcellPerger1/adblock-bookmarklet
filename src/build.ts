@@ -2,20 +2,19 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { rollup } from 'rollup';
-import rollupPluginTerser from '@rollup/plugin-terser';
-/** @typedef {import('rollup').RollupBuild} RollupBuild */
-/** @typedef {import('terser').MinifyOptions} MinifyOptions */
-
+import { rollup, type RollupBuild } from 'rollup';
+import rollupPluginTerser, {
+  type Options as TerserOptions,
+} from '@rollup/plugin-terser';
 
 const LICENSE = '@copyright (c) 2022-2026 Marcell Perger @license MIT';
 
-async function writeResult(/**@type {string}*/ file, /**@type {string}*/ code) {
+async function writeResult(file: string, code: string) {
   console.log('Writing', file);
   return writeFile(file, code);
 }
 
-function getTxtPath(/**@type {string}*/ jsPath) {
+function getTxtPath(jsPath: string) {
   let { dir, base } = path.parse(jsPath);
   // rename, replace .js extension with (or add new extension if not js) .txt extension
   base = base
@@ -25,9 +24,9 @@ function getTxtPath(/**@type {string}*/ jsPath) {
 }
 
 async function generateWithConfig(
-  /**@type {RollupBuild}*/ bundle,
-  /**@type {string}*/ outfile,
-  /**@type {MinifyOptions}*/ options,
+  bundle: RollupBuild,
+  outfile: string,
+  options: TerserOptions,
 ) {
   let { output } = await bundle.generate({
     format: 'es', // TODO es or iife?
@@ -44,9 +43,9 @@ async function generateWithConfig(
 }
 
 async function writeWithConfig(
-  /**@type {RollupBuild}*/ bundle,
-  /**@type {string}*/ outfile,
-  /**@type {MinifyOptions}*/ options,
+  bundle: RollupBuild,
+  outfile: string,
+  options: TerserOptions,
   { strict = false, writeText = false } = {},
 ) {
   let code = await generateWithConfig(bundle, outfile, options);
@@ -93,7 +92,7 @@ async function build() {
       ),
     ]);
 
-    let rejects = results.filter(({ status }) => status == 'rejected');
+    let rejects = results.filter((v) => v.status == 'rejected');
     if (rejects.length) {
       throw new Error('Failed to bookmark-ify Javascript', {
         cause: rejects.map(({ reason }) => reason),
