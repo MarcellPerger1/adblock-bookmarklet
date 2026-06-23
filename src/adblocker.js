@@ -89,6 +89,13 @@
       // NOTE: This will add `parent` to the end of removedElems (if not ignored) so will check again from the parent
       rm.elem(parent);
     }
+    // Now of the remaining elements, find all the no-source iframes
+    for(let elem of document.querySelectorAll('iframe')) {
+      if(elem.src || !elem.contentDocument) continue;
+      // TODO: detect if entire iframe is an ad
+      // TODO: observers for inner iframes as well
+      blockInDocument(elem.contentDocument);
+    }
   }
   function blockInDocument(/**@type {Document}*/ document) {
     let filters = {
