@@ -1,47 +1,107 @@
 /* eslint-env node, es2021 */
-import { minify } from "terser";
-import { readFile, writeFile } from "fs/promises";
+import { writeFile } from 'node:fs/promises';
+import path from 'node:path';
+
+import { rollup } from 'rollup';
+import rollupPluginTerser from '@rollup/plugin-terser';
+/** @typedef {import('rollup').RollupBuild} RollupBuild */
+/** @typedef {import('terser').MinifyOptions} MinifyOptions */
 
 
-async function writeResult(file, code) {
-  console.log("Writing", file);
+const LICENSE = '@copyright (c) 2022-2026 Marcell Perger @license MIT';
+
+async function writeResult(/**@type {string}*/ file, /**@type {string}*/ code) {
+  console.log('Writing', file);
   return writeFile(file, code);
 }
 
+function getTxtPath(/**@type {string}*/ jsPath) {
+  let { dir, base } = path.parse(jsPath);
+  // rename, replace .js extension with (or add new extension if not js) .txt extension
+  base = base
+    .replace(/adblocker\b/, 'bookmarklet')
+    .replace(/(\.m?[jt]s|)$/, '.txt');
+  return path.format({ dir, base }).replace('\\', '/'); // Posix separators plz
+}
 
-async function minifyToText(options, strict=false) {
-  var result = await minify(orig, {...options});
-  var minified = result.code;
-  if (strict && minified.includes("\n")) {
-    throw new Error("Minified file contains newlines so cannot be put into a bookmark");
+async function generateWithConfig(
+  /**@type {RollupBuild}*/ bundle,
+  /**@type {string}*/ outfile,
+  /**@type {MinifyOptions}*/ options,
+) {
+  let { output } = await bundle.generate({
+    format: 'es', // TODO es or iife?
+    file: outfile,
+    strict: false,
+    plugins: [rollupPluginTerser(options)],
+  });
+  if (output.length != 1) {
+    console.error('rollup is trying to generate multiple chunks', output);
+    throw new Error('rollup is trying to generate multiple chunks, not good');
   }
-  return minified;
+  // .trim() is important to remove trailing newline
+  return `/**${LICENSE}*/{${output[0].code.trim()}}`;
 }
-async function minifyToFile(file, options, strict=false, writeText=false) {
-  console.log("Minifying", file);
-  var code = await minifyToText(options, strict);
-  var ps = [writeResult(file, code)];
-  if(writeText) {
-    let textFile = file.replaceAll(
-      /adblocker\.([^./]+)\.js/g, "bookmarklet.$1.txt")
-    let text = "javascript:" + code;
-    ps.push(writeResult(textFile, text));
+
+async function writeWithConfig(
+  /**@type {RollupBuild}*/ bundle,
+  /**@type {string}*/ outfile,
+  /**@type {MinifyOptions}*/ options,
+  { strict = false, writeText = false } = {},
+) {
+  let code = await generateWithConfig(bundle, outfile, options);
+  if (strict && code.includes('\n')) {
+    throw new Error(
+      'Minified file contains newlines so cannot be put into a bookmark',
+    );
   }
-  await Promise.all(ps);
+  await Promise.all([
+    writeResult(outfile, code),
+    writeText ? writeResult(getTxtPath(outfile), 'javascript:' + code) : null,
+  ]);
 }
 
-console.log("Reading input");
-var orig = (await readFile("./src/adblocker.js")).toString();
-var results = await Promise.allSettled([
-  minifyToFile("./dist/debug/adblocker.debug.js", {
-    ecma: 2021, mangle: false, compress: false
-    }, false, true),
-  minifyToFile("./dist/release/adblocker.min.js", {
-    ecma: 2021, compress: {passes: 3, expression: false, negate_iife: false}, mangle: {toplevel: true}
-    }, true, true),
-]);
+async function build() {
+  let bundle;
+  try {
+    bundle = await rollup({
+      input: './src/adblocker.js',
+    });
 
+    let results = await Promise.allSettled([
+      writeWithConfig(
+        bundle,
+        './dist/debug/adblocker.debug.js',
+        { ecma: 2021, compress: false, mangle: false },
+        { strict: false, writeText: true },
+      ),
+      writeWithConfig(
+        bundle,
+        './dist/release/adblocker.min.js',
+        {
+          ecma: 2021,
+          compress: {
+            passes: 3,
+            expression: false,
+            negate_iife: false,
+            unsafe: true,
+            unsafe_arrows: true,
+          },
+          mangle: { toplevel: true },
+        },
+        { strict: true, writeText: true },
+      ),
+    ]);
 
-if(results.some(({status}) => status == "rejected")) {
-  throw new Error("Failed to bookmark-ify Javascript", {cause: results.filter(({status}) => status == "rejected").map(({reason}) => reason)});
+    let rejects = results.filter(({ status }) => status == 'rejected');
+    if (rejects.length) {
+      throw new Error('Failed to bookmark-ify Javascript', {
+        cause: rejects.map(({ reason }) => reason),
+      });
+    }
+  } finally {
+    if (bundle) await bundle.close();
+  }
 }
+
+await build();
