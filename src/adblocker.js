@@ -4,6 +4,9 @@ import getBlocklist from "./blocklist.js";
 /** @type {Map<Document, {observer: MutationObserver, lastRun: number}>} */
 var documentRegistry = new Map;
 
+// Attribute for shorter accesses of the ultra-long contentDocument attr
+const CONTENT_DOC = "contentDocument";
+
 function blockInDocumentWithFilters(
   /** @type {Document} */ document,
   /**@type {FiltersT}*/ what,
@@ -75,8 +78,8 @@ function blockInDocumentWithFilters(
   }
   // Now of the remaining elements, find all the no-source iframes
   for(let elem of document.querySelectorAll('iframe')) {
-    if(elem.src || !elem.contentDocument) continue;
-    blockInDocument(elem.contentDocument);  // Also, registers it
+    if(elem.src || !elem[CONTENT_DOC]) continue;
+    blockInDocument(elem[CONTENT_DOC]);  // Also, registers it
     // TODO: detect if entire iframe is an ad
   }
 }
@@ -96,25 +99,25 @@ function is_iframe(/**@type {Node}*/n) {
 
 /** @returns {n is HTMLIFrameElement & {contentDocument: Document}} */
 function is_transparent_iframe(/**@type {Node}*/n) {
-  return is_iframe(n) && n.contentDocument;
+  return is_iframe(n) && n[CONTENT_DOC];
 }
 
 function observerCallback(/**@type {Document}*/document, /**@type {MutationRecord[]}*/mutations, /**@type {MutationObserver}*/_observer) {
   for(let m of mutations) {
     for(let n of m.removedNodes) {
       if(is_transparent_iframe(n)) {
-        deregisterDocument(n.contentDocument)
+        deregisterDocument(n[CONTENT_DOC])
       }
     }
     for(let n of m.addedNodes) {
       if(is_transparent_iframe(n)) {
-        let subdoc = n.contentDocument;
+        let subdoc = n[CONTENT_DOC];
         if(registerNewDocument(subdoc) && subdoc.hasChildNodes()) 
           blockInDocument(subdoc);
       }
     }
     if(m.type == 'attributes' && is_iframe(m.target)) {
-      deregisterDocument(m.target.contentDocument);
+      deregisterDocument(m.target[CONTENT_DOC]);
     }
   }
   blockInDocument(document);
