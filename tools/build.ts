@@ -28,7 +28,7 @@ async function generateWithConfig(
   options: TerserOptions,
 ) {
   let { output } = await bundle.generate({
-    format: 'es', // TODO es or iife?
+    format: 'iife',  // Global scope may have stuff already declared that conflict with our variables
     file: outfile,
     strict: false,
     plugins: [rollupPluginTerser(options)],
@@ -38,7 +38,7 @@ async function generateWithConfig(
     throw new Error('rollup is trying to generate multiple chunks, not good');
   }
   // .trim() is important to remove trailing newline
-  return `/**${LICENSE}*/{${output[0].code.trim()}}`;
+  return `/**${LICENSE}*/${output[0].code.trim()}`;
 }
 
 async function writeWithConfig(
