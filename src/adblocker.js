@@ -1,11 +1,12 @@
-/* eslint-env browser, es2021 */
-/** @typedef {{selector: string[]; func: ((elem: HTMLElement) => boolean?)[];}} IgnoreFiltersT */
-/** @typedef {{selector: string | null; func: (elem: Element) => any}} FuncFilterT */
-/** @typedef {{cls?: string[], selector?: string[], func?: FuncFilterT[], ignore?: IgnoreFiltersT}} FiltersT */
+import getBlocklist from "./blocklist.js";
+/** @typedef {import('./blocklist.js').FiltersT} FiltersT */
+
+/** @type {Map<Document, {observer: MutationObserver, lastRun: number}>} */
+var documentRegistry = new Map;
 
 function blockInDocumentWithFilters(
   /** @type {Document} */ document,
-  /**@type {IgnoreFiltersT}*/ what,
+  /**@type {FiltersT}*/ what,
 ) {
   function isContainerElem(
     /** @type {HTMLElement} */ elem,
@@ -37,7 +38,7 @@ function blockInDocumentWithFilters(
         HTMLElement.prototype.remove.call(elem);
       }
     },
-    list(/** @type {HTMLElement[]} */ elems) {
+    list(/** @type {Iterable<HTMLElement>} */ elems) {
       Array.from(elems).forEach((v) => rm.elem(v));
     },
     cls(/**@type {string} */ name) {
@@ -47,11 +48,7 @@ function blockInDocumentWithFilters(
       rm.list(document.querySelectorAll(selector));
     },
     func({ func, selector = null }) {
-      let elems =
-        selector == null
-          ? document.getElementsByClassName('*')
-          : document.querySelectorAll(selector);
-      for (let elem of elems) {
+      for (let elem of document.querySelectorAll(selector ?? "*")) {
         if (func(elem)) {
           rm.elem(elem);
         }
@@ -66,13 +63,6 @@ function blockInDocumentWithFilters(
       for (let arg of args) {
         rm[name](arg);
       }
-    }
-    // Now of the remaining elements, find all the no-source iframes
-    for(let elem of document.querySelectorAll('iframe')) {
-      if(elem.src || !elem.contentDocument) continue;
-      // TODO: detect if entire iframe is an ad
-      // TODO: observers for inner iframes as well
-      blockInDocument(elem.contentDocument);
     }
   }
   for (let [elem, parent] of removedElems) {
@@ -98,133 +88,72 @@ function blockInDocumentWithFilters(
   // Now of the remaining elements, find all the no-source iframes
   for(let elem of document.querySelectorAll('iframe')) {
     if(elem.src || !elem.contentDocument) continue;
+    blockInDocument(elem.contentDocument);  // Also, registers it
     // TODO: detect if entire iframe is an ad
-    // TODO: observers for inner iframes as well
-    blockInDocument(elem.contentDocument);
   }
 }
-function blockInDocument(/**@type {Document}*/ document) {
-  let filters = {
-    cls: [
-      'adsbygoogle',
-      'mod_ad_container',
-      'brn-ads-box',
-      'gpt-ad',
-      'ad-box',
-      'top-ads-container',
-      'adthrive-ad',
-    ],
-    selector: [
-      '[aria-label="advertisement"]',
-      '[class*="-ad "],[class*="-ad-"],[class$="-ad"],[class^="ad-"],[class^="adthrive"]',
-      ':is(div,iframe)[id^="google_ads_iframe_"]',
-      '#aipPrerollContainer',
-      // This should really select the top one but we let the 'only contains ads' functionality handle it.
-      // Yes I know its lazy, but it is more elegant than writing a whole new func filter (and more performant)
-      'span[data-ez-ph-id] span[data-ez-ph-owner-id] span.ezoicwhat',
-      // Malfunctioning overambitious adblocker-wall on Cite This For Me
-      'div#_60cc9a6b-496d-4e44-90d8-0b2947bfd3ce',
-      // hopefully not too overambitious (vm-placement is quite generic but 'placement' is used so often just for ads so it's fine)
-      '.vm-placement + :has(iframe):not(:has(* + *)) iframe',
-      // Dumbing of Age comic thing (error-prone, may need to change for later website versions)
-      'iframe#p_AIW8hnK, iframe#p_AIW8hnK, iframe#p_Xdy8q6J',
-    ],
-    /** @type {{selector: string?, func: (elem: Element) => any}[]} */
-    func: [
-      {
-        selector: '[class*="ad" i],[id*="ad" i]',
-        /** This is the one that gets most of them, rest is just special cases */
-        func(elem) {
-          for (const name of [
-            elem.id,
-            ...elem.classList,
-            elem.tagName.toLowerCase(),
-          ]) {
-            // TODO also check lowercase followed by uppercase at end e.g. adBox
-            if (
-              /(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?[xX]?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(
-                name,
-              )
-            ) {
-              return true;
-            }
-          }
-        },
-      },
-      {
-        selector: 'div#preroll',
-        func(elem) {
-          // match div#preroll that has child div#aipBranding
-          for (let c of elem.children) {
-            if (c.matches('div#aipBranding')) {
-              return true;
-            }
-          }
-        },
-      },
-      {
-        selector: 'html > iframe',
-        func(/** @type {HTMLIFrameElement} */ elem) {
-          // Some sanity checks not to accidenally break websites
-          if (
-            !(
-              elem.sandbox.contains('allow-scripts') &&
-              elem.sandbox.contains('allow-same-origin') &&
-              elem.sandbox.length == 2
-            )
-          ) {
-            return false;
-          }
-          if (!elem.src.toLowerCase().includes('gdpr')) {
-            // Ad iframes very often include a `?gdpr=...` in the URL
-            return false;
-          }
-          return true;
-        },
-      },
-      {
-        selector:
-          ':is(iframe[name="__tcfapiLocator"], iframe[name="__pb_locator__"]) ~ :is(span, div):has(iframe):not(:has(* + *))',
-        func(el) {
-          if (!el.src) return true; // exterminate  (usually ad)
-        },
-      },
-    ],
-    ignore: {
-      selector: [
-        'body',
-        '.ad-layout',
-        '#game-holder.game-holder-with-ad',
-        '.no-interstitial-ads',
-      ],
-      func: [
-        (elem) => {
-          let articles = document.getElementsByTagName('article');
-          for (let a of articles) {
-            if (elem.contains(a)) {
-              return true; // ignore if an article descends from it
-            }
-          }
-        },
-      ],
-    },
-  };
-  return blockInDocumentWithFilters(document, filters);
+function initObserver(/**@type {Document}*/ document) {
+  return new MutationObserver((ms, o) => observerCallback(document, ms, o)).observe(document, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+    attributeOldValue: true
+  });
 }
 
-var lastRun = -1e9;
-function block() {
-  // run every 100ms at most, but clamp other side to prevent timezone weirdness
-  // TODO: what if new mutation while still this period but not caused by use?!
-  if (lastRun < Date.now() && Date.now() < lastRun + 100) return;
-  lastRun = Date.now();
-  blockInDocument(/*global*/document);
+/** @returns {n is HTMLIFrameElement} */
+function is_iframe(/**@type {Node}*/n) {
+  return n.nodeName == "IFRAME";
 }
-// TODO: smarter logic would be good here to only check elements modified. But that would require
-//  a complete re-architecture of the code so may be undesirable
-new MutationObserver(block).observe(document.body, {
-  attributes: true,
-  childList: true,
-  subtree: true,
-});
-block();
+
+/** @returns {n is HTMLIFrameElement & {contentDocument: Document}} */
+function is_transparent_iframe(/**@type {Node}*/n) {
+  return is_iframe(n) && n.contentDocument;
+}
+
+function observerCallback(/**@type {Document}*/document, /**@type {MutationRecord[]}*/mutations, /**@type {MutationObserver}*/_observer) {
+  for(let m of mutations) {
+    for(let n of m.removedNodes) {
+      if(is_transparent_iframe(n)) {
+        documentRegistry.delete(n.contentDocument);
+      }
+    }
+    for(let n of m.addedNodes) {
+      if(is_transparent_iframe(n)) {
+        let subdoc = n.contentDocument;
+        if(registerNewDocument(subdoc) && subdoc.hasChildNodes()) 
+          blockInDocument(subdoc);
+      }
+    }
+    if(m.type == 'attributes' && is_iframe(m.target) && !m.target.contentDocument) {
+      documentRegistry.delete(m.target.contentDocument);
+    }
+  }
+  blockInDocument(document);
+}
+
+const MIN_INTERVAL = 100;  // milliseconds
+
+function registerNewDocument(/**@type {Document}*/ document) {
+  if(!documentRegistry.has(document)) {
+    documentRegistry.set(document, {
+      observer: initObserver(document),
+      lastRun: 0
+    });
+    return true;
+  }
+  return false;
+}
+
+function blockInDocument(/**@type {Document}*/ document) {
+  registerNewDocument(document);
+  let lastRun = documentRegistry.get(document).lastRun;
+  // (if lastRun is not in past, we run it so we don't get stuck after time zone changes?)
+  if(lastRun && lastRun < Date.now() && Date.now() < lastRun + MIN_INTERVAL) return;
+  lastRun = Date.now();
+  return blockInDocumentWithFilters(document, getBlocklist(document));
+}
+
+blockInDocument(/*global*/document);
+
+// TODO: occasionally loop over all documents and reblock all
