@@ -1,4 +1,3 @@
-/* eslint-env node, es2021 */
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 

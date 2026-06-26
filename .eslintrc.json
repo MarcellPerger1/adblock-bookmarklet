@@ -8,8 +8,26 @@
     "sourceType": "module"
   },
   "rules": {
+    "no-unused-vars": ["error", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_"
+    }]
   },
   "ignorePatterns": [
     "dist/*"
+  ],
+  "overrides": [
+    {
+      "files": ["tools/**"],
+      "env": {
+        "node": true
+      }
+    },
+    {
+      "files": ["src/**"],
+      "env": {
+        "browser": true
+      }
+    }
   ]
 }
