@@ -1,5 +1,5 @@
-import getBlocklist from "./blocklist.js";
 /** @typedef {import('./blocklist.js').FiltersT} FiltersT */
+import getBlocklist from "./blocklist.js";
 
 /** @type {Map<Document, {observer: MutationObserver, lastRun: number}>} */
 var documentRegistry = new Map;
@@ -8,25 +8,13 @@ function blockInDocumentWithFilters(
   /** @type {Document} */ document,
   /**@type {FiltersT}*/ what,
 ) {
-  function isContainerElem(
-    /** @type {HTMLElement} */ elem,
-  ) /** @type {boolean} */ {
+  function isContainerElem(/**@type {HTMLElement}*/elem) {
     // .tagName returns UPPERCASE for some reason
     return ['DIV', 'SPAN'].includes(elem.tagName);
   }
 
-  function shouldIgnore(elem) {
-    for (let s of what.ignore?.selector ?? []) {
-      if (elem.matches(s)) {
-        return true;
-      }
-    }
-    for (let f of what.ignore?.func ?? []) {
-      if (f(elem)) {
-        return true;
-      }
-    }
-    return false;
+  function shouldIgnore(/** @type {HTMLElement} */elem) {
+    return (what.ignore?.selector ?? []).some(elem.matches, /*thisArg*/elem) || (what.ignore?.func ?? []).some(f => f(elem));
   }
 
   var rm = {
@@ -39,7 +27,7 @@ function blockInDocumentWithFilters(
       }
     },
     list(/** @type {Iterable<HTMLElement>} */ elems) {
-      Array.from(elems).forEach((v) => rm.elem(v));
+      for(let v of elems) rm.elem(v);
     },
     cls(/**@type {string} */ name) {
       rm.list(document.getElementsByClassName(name));
@@ -125,14 +113,14 @@ function observerCallback(/**@type {Document}*/document, /**@type {MutationRecor
           blockInDocument(subdoc);
       }
     }
-    if(m.type == 'attributes' && is_iframe(m.target) && !m.target.contentDocument) {
+    if(m.type == 'attributes' && is_iframe(m.target)) {
       deregisterDocument(m.target.contentDocument);
     }
   }
   blockInDocument(document);
 }
 
-function deregisterDocument(/**@type {Document}*/ document) {
+function deregisterDocument(/**@type {Document?}*/ document) {
   documentRegistry.get(document)?.observer?.disconnect?.();
   documentRegistry.delete(document);
 }
