@@ -1,136 +1,155 @@
-/* eslint-env browser, es2021 */
-(function(what) {
-  function shouldIgnore(elem) {
-    for(let s of what.ignore?.selector ?? []) {
-      if(elem.matches(s)) { return true; }
-    }
-    for(let f of what.ignore?.func ?? []) {
-      if(f(elem)) { return true; }
-    }
-    return false;
-  }
-  function isContainerElem(/** @type {HTMLElement} */elem) /** @type {boolean} */ {
+/** @typedef {import('./blocklist.js').FiltersT} FiltersT */
+import getBlocklist from "./blocklist.js";
+
+/** @type {Map<Document, {observer: MutationObserver, lastRun: number}>} */
+var documentRegistry = new Map;
+
+// Attribute for shorter accesses of the ultra-long contentDocument attr
+const CONTENT_DOC = "contentDocument";
+
+function blockInDocumentWithFilters(
+  /** @type {Document} */ document,
+  /**@type {FiltersT}*/ what,
+) {
+  function isContainerElem(/**@type {HTMLElement}*/elem) {
     // .tagName returns UPPERCASE for some reason
-    return ["DIV", "SPAN"].includes(elem.tagName);
+    return ['DIV', 'SPAN'].includes(elem.tagName);
   }
+
+  function shouldIgnore(/** @type {HTMLElement} */elem) {
+    return (what.ignore?.selector ?? []).some(elem.matches, /*thisArg*/elem) || (what.ignore?.func ?? []).some(f => f(elem));
+  }
+
   var rm = {
-    elem(/** @type {HTMLElement} */elem) {
-      if(!shouldIgnore(elem)) {
+    elem(/** @type {HTMLElement} */ elem) {
+      if (!shouldIgnore(elem)) {
         removedElems.add([elem, elem.parentElement]);
-        elem.remove()
+        // Anti-adblock stuff might overwrite their own prototype
+        // This isn't perfect by any means but it's good enough.
+        HTMLElement.prototype.remove.call(elem);
       }
     },
-    list(/** @type {HTMLElement[]} */elems) {
-      Array.from(elems).forEach(v => rm.elem(v))
+    list(/** @type {Iterable<HTMLElement>} */ elems) {
+      for(let v of elems) rm.elem(v);
     },
-    cls(/**@type {string} */name) {
-      rm.list(document.getElementsByClassName(name))
+    cls(/**@type {string} */ name) {
+      rm.list(document.getElementsByClassName(name));
     },
-    selector(/** @type {string} */selector) {
-      rm.list(document.querySelectorAll(selector))
+    selector(/** @type {string} */ selector) {
+      rm.list(document.querySelectorAll(selector));
     },
-    func({func, selector=null}) {
-      let elems = selector == null 
-        ? document.getElementsByClassName("*") 
-        : document.querySelectorAll(selector);
-      for (let elem of elems) {
+    func({ func, selector = null }) {
+      for (let elem of document.querySelectorAll(selector ?? "*")) {
         if (func(elem)) {
           rm.elem(elem);
         }
       }
-    }
+    },
   };
-  var /** @type {Set<[HTMLElement, HTMLElement]>} */ removedElems  = new Set;
-  var handledElems /** @type {Set<HTMLElement>} */ = new Set;
+  var /** @type {Set<[HTMLElement, HTMLElement]>} */ removedElems = new Set();
+  var handledElems /** @type {Set<HTMLElement>} */ = new Set();
   for (let [name, args] of Object.entries(what)) {
     // don't try to use the 'ignore' property as a thing to block
-    if(name != 'ignore') {
+    if (name != 'ignore') {
       for (let arg of args) {
         rm[name](arg);
       }
     }
   }
-  for(let [elem, parent] of removedElems) {
-    if(handledElems.has(elem)) {
-      continue;  // already handled
+  for (let [elem, parent] of removedElems) {
+    if (handledElems.has(elem)) {
+      continue; // already handled
     }
     handledElems.add(elem);
-    if(!parent.isConnected) {
-      // (indirect) parent has been deleted so don't do anything here, 
+    if (!parent.isConnected) {
+      // (indirect) parent has been deleted so don't do anything here,
       // instead go from the parent (which will also be in the Set)
       continue;
     }
-    if(!isContainerElem(parent)) {
-      continue;  // parent might be an image or similar so don't delete
+    if (!isContainerElem(parent)) {
+      continue; // parent might be an image or similar so don't delete
     }
-    if(parent.hasChildNodes()) {
-      continue;  // don't delete parent - info of other children would be lost
+    if (parent.hasChildNodes()) {
+      continue; // don't delete parent - info of other children would be lost
     }
     // no children, no info in self, so safe to delete
     // NOTE: This will add `parent` to the end of removedElems (if not ignored) so will check again from the parent
     rm.elem(parent);
   }
-})({
-  cls: ['adsbygoogle', 'mod_ad_container', 'brn-ads-box','gpt-ad','ad-box','top-ads-container', 'adthrive-ad'],
-  selector: [
-    '[aria-label="advertisement"]',
-    '[class*="-ad "],[class*="-ad-"],[class$="-ad"],[class^="ad-"],[class^="adthrive"]',
-    ':is(div,iframe)[id^="google_ads_iframe_"]',
-    '#aipPrerollContainer',
-    // This should really select the top one but we let the 'only contains ads' functionality handle it. 
-    // Yes I know its lazy, but it is more elegant than writing a whole new func filter (and more performant)
-    'span[data-ez-ph-id] span[data-ez-ph-owner-id] span.ezoicwhat',
-    // Malfunctioning overambitious adblocker-wall on Cite This For Me
-    'div#_60cc9a6b-496d-4e44-90d8-0b2947bfd3ce',
-  ],
-  /** @type {{selector: string?, func: (elem: Element) => any}[]} */
-  func: [
-    {
-      selector: '[class*="ad" i],[id*="ad" i]', 
-      /** This is the one that gets most of them, rest is just special cases */
-      func(elem) {
-        for (const name of [elem.id, ...elem.classList, elem.tagName.toLowerCase()]) {
-          // TODO also check lowercase followed by uppercase at end e.g. adBox
-          if(/(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(name)) {
-            return true;
-          }
-        }
-      }
-    },
-    {
-      selector: 'div#preroll',
-      func(elem) {
-        // match div#preroll that has child div#aipBranding
-        for (let c of elem.children) {
-          if(c.matches("div#aipBranding")) {
-            return true;
-          }
-        }
-      }
-    },
-    {
-      selector: 'html > iframe',
-      func(/** @type {HTMLIFrameElement} */elem) {
-        // Some sanity checks not to accidenally break websites
-        if(!(elem.sandbox.contains("allow-scripts") && elem.sandbox.contains("allow-same-origin") && elem.sandbox.length == 2)) {
-          return false;
-        }
-        if(!elem.src.toLowerCase().includes("gdpr")) { // Ad iframes very often include a `?gdpr=...` in the URL
-          return false;
-        }
-        return true;
-      }
-    },
-  ],
-  ignore: {
-    selector: ["body", ".ad-layout", "#game-holder.game-holder-with-ad", ".no-interstitial-ads"],
-    func: [(elem) => {
-      let articles = document.getElementsByTagName('article');
-      for(let a of articles) {
-        if(elem.contains(a)) {
-          return true;  // ignore if an article descends from it
-        }
-      }
-    }]
+  // Now of the remaining elements, find all the no-source iframes
+  for(let elem of document.querySelectorAll('iframe')) {
+    if(elem.src || !elem[CONTENT_DOC]) continue;
+    blockInDocument(elem[CONTENT_DOC]);  // Also, registers it
+    // TODO: detect if entire iframe is an ad
   }
-})
+}
+function initObserver(/**@type {Document}*/ document) {
+  return new MutationObserver((ms, o) => observerCallback(document, ms, o)).observe(document, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+    attributeOldValue: true
+  });
+}
+
+/** @returns {n is HTMLIFrameElement} */
+function is_iframe(/**@type {Node}*/n) {
+  return n.nodeName == "IFRAME";
+}
+
+/** @returns {n is HTMLIFrameElement & {contentDocument: Document}} */
+function is_transparent_iframe(/**@type {Node}*/n) {
+  return is_iframe(n) && n[CONTENT_DOC];
+}
+
+function observerCallback(/**@type {Document}*/document, /**@type {MutationRecord[]}*/mutations, /**@type {MutationObserver}*/_observer) {
+  for(let m of mutations) {
+    for(let n of m.removedNodes) {
+      if(is_transparent_iframe(n)) {
+        deregisterDocument(n[CONTENT_DOC])
+      }
+    }
+    for(let n of m.addedNodes) {
+      if(is_transparent_iframe(n)) {
+        let subdoc = n[CONTENT_DOC];
+        if(registerNewDocument(subdoc) && subdoc.hasChildNodes()) 
+          blockInDocument(subdoc);
+      }
+    }
+    if(m.type == 'attributes' && is_iframe(m.target)) {
+      deregisterDocument(m.target[CONTENT_DOC]);
+    }
+  }
+  blockInDocument(document);
+}
+
+function deregisterDocument(/**@type {Document?}*/ document) {
+  documentRegistry.get(document)?.observer?.disconnect?.();
+  documentRegistry.delete(document);
+}
+
+const MIN_INTERVAL = 100;  // milliseconds
+
+function registerNewDocument(/**@type {Document}*/ document) {
+  if(!documentRegistry.has(document)) {
+    documentRegistry.set(document, {
+      observer: initObserver(document),
+      lastRun: 0
+    });
+    return true;
+  }
+  return false;
+}
+
+function blockInDocument(/**@type {Document}*/ document) {
+  registerNewDocument(document);
+  let lastRun = documentRegistry.get(document).lastRun;
+  // (if lastRun is not in past, we run it so we don't get stuck after time zone changes?)
+  if(lastRun && lastRun < Date.now() && Date.now() < lastRun + MIN_INTERVAL) return;
+  documentRegistry.get(document).lastRun = Date.now();
+  return blockInDocumentWithFilters(document, getBlocklist(document));
+}
+
+blockInDocument(/*global*/document);
+
+// TODO: occasionally loop over all documents and reblock all
