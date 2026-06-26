@@ -115,7 +115,7 @@ function observerCallback(/**@type {Document}*/document, /**@type {MutationRecor
   for(let m of mutations) {
     for(let n of m.removedNodes) {
       if(is_transparent_iframe(n)) {
-        documentRegistry.delete(n.contentDocument);
+        deregisterDocument(n.contentDocument)
       }
     }
     for(let n of m.addedNodes) {
@@ -126,10 +126,15 @@ function observerCallback(/**@type {Document}*/document, /**@type {MutationRecor
       }
     }
     if(m.type == 'attributes' && is_iframe(m.target) && !m.target.contentDocument) {
-      documentRegistry.delete(m.target.contentDocument);
+      deregisterDocument(m.target.contentDocument);
     }
   }
   blockInDocument(document);
+}
+
+function deregisterDocument(/**@type {Document}*/ document) {
+  documentRegistry.get(document)?.observer?.disconnect?.();
+  documentRegistry.delete(document);
 }
 
 const MIN_INTERVAL = 100;  // milliseconds
@@ -150,7 +155,7 @@ function blockInDocument(/**@type {Document}*/ document) {
   let lastRun = documentRegistry.get(document).lastRun;
   // (if lastRun is not in past, we run it so we don't get stuck after time zone changes?)
   if(lastRun && lastRun < Date.now() && Date.now() < lastRun + MIN_INTERVAL) return;
-  lastRun = Date.now();
+  documentRegistry.get(document).lastRun = Date.now();
   return blockInDocumentWithFilters(document, getBlocklist(document));
 }
 
