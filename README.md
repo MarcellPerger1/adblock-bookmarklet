@@ -12,7 +12,7 @@ If you are familiar with how to use bookmarklets, all you need to know is that t
 If not, no worries, here's some basic instructions for desktop browsers:
 
 - Copy text from [`dist/release/bookmarklet.min.txt`](dist/release/bookmarklet.min.txt)
-- Set as bookmark and click on the bookmark to remove ads
+- Set as bookmark (paste the stuff you copied into the "URL" bit) and click on the bookmark to remove ads
 - Or paste text into URL bar (but make sure it starts with `javascript:`)
 
 For mobile browsers, it is a little more complicated due to the lack of bookmarks bar:
