@@ -3,6 +3,7 @@
 /** @typedef {{cls?: string[], selector?: string[], func?: FuncFilterT[], ignore?: IgnoreFiltersT}} FiltersT */
 
 export default function getBlocklist(/**@type {Document}*/document) /** @type {FiltersT} */ {
+  let MAIN_AD_RE = /(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?[xX]?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/g;
   return {
     cls: [
       'adsbygoogle',
@@ -40,11 +41,7 @@ export default function getBlocklist(/**@type {Document}*/document) /** @type {F
             elem.tagName.toLowerCase(),
           ]) {
             // TODO also check lowercase followed by uppercase at end e.g. adBox
-            if (
-              /(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?[xX]?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/.test(
-                name,
-              )
-            ) {
+            if (MAIN_AD_RE.test(name)) {
               return true;
             }
           }
@@ -74,11 +71,22 @@ export default function getBlocklist(/**@type {Document}*/document) /** @type {F
           ) {
             return false;
           }
-          if (!elem.src.toLowerCase().includes('gdpr')) {
-            // Ad iframes very often include a `?gdpr=...` in the URL
-            return false;
+          /** @type {{regex: RegExp, value?: number, max?: number}[]} */
+          let badRegexes = [
+            {regex: /((\b|[0-9_])[pP]|[a-z]P)rebid/g},
+            {regex: /(?<!lo|re|he)ad[_-]?[Ll]ocation/g},
+            {regex: /(?<!lo|re|he)ad[-_]?[uU]nit/g},
+            {regex: /(^|[a-z](?=[A-Z])|[0-9_]|\b)([gG]dpr|GDPR)/},
+            {regex: MAIN_AD_RE, value: 0.1},
+            {regex: /api\.taboola\.com\//, value: 2}  // dead
+          ];
+          let karma = 0;
+          for(let {regex, value=1, max=Number.MAX_VALUE} of badRegexes) {
+            // clamp to 0..=max
+            karma -= Math.min(max, (elem.src.match(regex) || []).length * value);
           }
-          return true;
+          if(karma <= -1.2) return true;  // begone foul ad
+          return false;
         },
       },
       {
