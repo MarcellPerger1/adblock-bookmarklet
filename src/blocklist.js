@@ -3,7 +3,7 @@
 /** @typedef {{cls?: string[], selector?: string[], func?: FuncFilterT[], ignore?: IgnoreFiltersT}} FiltersT */
 
 export default function getBlocklist(/**@type {Document}*/document) /** @type {FiltersT} */ {
-  let MAIN_AD_RE = /(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?[xX]?([tT]hrive)?([cC]ontent)?([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/g;
+  let MAIN_AD_RE = /(?<!lo|re|he)(ad|Ad|AD)(vert(isement)?)?s?[xX]?([tT]hrive)?([cC]ontent)?([cC]lick)([eE]ngine|[nN]gin)?([cC]ontainer)?s?($|[-_,\s])/g;
   function getKarma(/**@type {string}*/uri) {
     /** @type {{regex: RegExp, value?: number, max?: number}[]} */
     let badRegexes = [
@@ -12,7 +12,9 @@ export default function getBlocklist(/**@type {Document}*/document) /** @type {F
       {regex: /(?<!lo|re|he)ad[-_]?[uU]nit/g},
       {regex: /(^|[a-z](?=[A-Z])|[0-9_]|\b)([gG]dpr|GDPR)/},
       {regex: MAIN_AD_RE, value: 0.1},
-      {regex: /api\.taboola\.com\//, value: 10}  // dead
+      {regex: /api\.taboola\.com\//, value: 10},  // dead
+      {regex: /doubleclick\.net\//, value: 10},  /// yet another google ads thing
+      {regex: /\badclick(\b|[-_])/},
     ];
     let karma = 0;
     for(let {regex, value=1, max=Number.MAX_VALUE} of badRegexes) {
@@ -30,6 +32,8 @@ export default function getBlocklist(/**@type {Document}*/document) /** @type {F
       'ad-box',
       'top-ads-container',
       'adthrive-ad',
+      'ob-smartfeed-wrapper',
+      'ob-feed-layout'
     ],
     selector: [
       '[aria-label="advertisement"]',
@@ -45,17 +49,21 @@ export default function getBlocklist(/**@type {Document}*/document) /** @type {F
       '.vm-placement + :has(iframe):not(:has(* + *)) iframe',
       // Dumbing of Age comic thing (error-prone, may need to change for later website versions)
       'iframe#p_AIW8hnK, iframe#p_AIW8hnK, iframe#p_Xdy8q6J',
+      '#jpx-wp-front-container',
+      '[data-testid="primis-player-inline"]',
+      '[class^="PrimisPlayer_player-poster-wrapper"]',
     ],
     /** @type {{selector: string?, func: (elem: Element) => any}[]} */
     func: [
       {
-        selector: '[class*="ad" i],[id*="ad" i]',
+        selector: '[class*="ad" i],[id*="ad" i],[alt*="ad" i]',
         /** This is the one that gets most of them, rest is just special cases */
         func(elem) {
           for (const name of [
             elem.id,
             ...elem.classList,
             elem.tagName.toLowerCase(),
+            /**@type {HTMLImageElement | {alt: undefined}}*/(elem).alt ?? ""
           ]) {
             // TODO also check lowercase followed by uppercase at end e.g. adBox
             if (MAIN_AD_RE.test(name)) {

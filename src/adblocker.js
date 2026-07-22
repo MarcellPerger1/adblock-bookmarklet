@@ -13,7 +13,7 @@ function blockInDocumentWithFilters(
 ) {
   function isContainerElem(/**@type {HTMLElement}*/elem) {
     // .tagName returns UPPERCASE for some reason
-    return ['DIV', 'SPAN'].includes(elem.tagName);
+    return ['DIV', 'SPAN', 'SECTION'].includes(elem.tagName);
   }
 
   function shouldIgnore(/** @type {HTMLElement} */elem) {
