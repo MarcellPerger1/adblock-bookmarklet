@@ -32,6 +32,8 @@ export default function getBlocklist(/**@type {Document}*/document) /** @type {F
       'ad-box',
       'top-ads-container',
       'adthrive-ad',
+      'ob-smartfeed-wrapper',
+      'ob-feed-layout'
     ],
     selector: [
       '[aria-label="advertisement"]',
