@@ -49,6 +49,9 @@ export default function getBlocklist(/**@type {Document}*/document) /** @type {F
       '.vm-placement + :has(iframe):not(:has(* + *)) iframe',
       // Dumbing of Age comic thing (error-prone, may need to change for later website versions)
       'iframe#p_AIW8hnK, iframe#p_AIW8hnK, iframe#p_Xdy8q6J',
+      '#jpx-wp-front-container',
+      '[data-testid="primis-player-inline"]',
+      '[class^="PrimisPlayer_player-poster-wrapper"]',
     ],
     /** @type {{selector: string?, func: (elem: Element) => any}[]} */
     func: [
