@@ -130,6 +130,6 @@ out
 .yarn/install-state.gz
 .pnp.*
 
-# EXTRA STUFF
-# replit
-.breakpoints
+# ------ EXTRA ------
+# Need dist directory for our output
+!dist/
